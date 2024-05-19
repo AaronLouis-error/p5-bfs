@@ -83,10 +83,11 @@ i32 fsOpen(str fname) {
 // read (may be less than 'numb' if we hit EOF).  On failure, abort
 // ============================================================================
 i32 fsRead(i32 fd, i32 numb, void* buf) {
-
-  // ++++++++++++++++++++++++
-  // Insert your code here
-  // ++++++++++++++++++++++++
+  //todo: implement this
+  
+  //i32 bioRead (i32 dbn, void* buf);
+  //todo: fd to dbn
+  bioRead(fd, buf);
 
   FATAL(ENYI);                                  // Not Yet Implemented!
   return 0;

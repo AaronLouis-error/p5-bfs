@@ -7,6 +7,8 @@
 
 // ============================================================================
 // Read 512 bytes from block number 'dbn' in the BFS disk into buffer 'buf'
+// read block number dbn from the disk into the memory array buf.  Return 0 for
+// success.  Any failure will abort the program.
 // ============================================================================
 i32 bioRead(i32 dbn, void* buf) {
 
