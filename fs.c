@@ -92,20 +92,20 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   i32 inum = bfsFdToInum(fd);
   //there will be multiple fbn and dbn from this inode
   i32 cursor = bfsTell(fd);
-  i32 dataStart = cursor;
-  i32 fbn = cursor % 512;
+  i32 dataStart = cursor;  printf("cusor %d\n", cursor);
+  i32 fbn = cursor % 512; printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be read
   i32 dataEnd = dataStart + numb;
   for(int i = 0; i < numb; i = i + 512){
   
-    fsSeek(fd, cursor, SEEK_CUR); //set to appropriate start
-      cursor = bfsTell(fd);
-      printf("cusor %d\n", cursor);
+    //fsSeek(fd, cursor, SEEK_CUR); //set to appropriate start
+      //cursor = bfsTell(fd);
+      //printf("cusor %d\n", cursor);
 
-    fbn = cursor % 512; 
+    fbn = cursor % 512; printf("fbn: %d\n", fbn);
     //i32 bfsFbnToDbn(i32 inum, i32 fbn)
     //Inode number is 'inum'
-    i32 dbn = bfsFbnToDbn(inum, fbn); 
+    i32 dbn = bfsFbnToDbn(inum, fbn); printf("dbn: %d\n", dbn);
     //fbn is file Block number
 
     //i32 bioRead (i32 dbn, void* buf);
@@ -118,7 +118,8 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
     //cursor = bfsTell(fd);
     //printf("cusor %d\n", cursor);
 
-    i32 offset = 512;
+    i32 offset = (numb <= 512) ? numb : 512;
+
     fsSeek(fd, offset, SEEK_CUR);
       cursor = bfsTell(fd);
       printf("cusor %d\n", cursor);
@@ -134,6 +135,7 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   for(int i = 0; i<512; i++){
     printf("%d", tempBuf[i]);
   }
+  printf("\n");
 
   //FATAL(ENYI);                                  // Not Yet Implemented!
   return numb;
