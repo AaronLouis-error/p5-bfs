@@ -83,14 +83,60 @@ i32 fsOpen(str fname) {
 // read (may be less than 'numb' if we hit EOF).  On failure, abort
 // ============================================================================
 i32 fsRead(i32 fd, i32 numb, void* buf) {
-  //todo: implement this
+  //todo: make sure we don't hit end of File
+  i8 tempBuf[512];//need temp buf so that only approved data is added to real buf
+    printf("Numb: %d\n", numb);
+  //i32 bfsFdToInum(i32 fd)
+  //Inode number is 'inum'
+  // fd is file descriptor
+  i32 inum = bfsFdToInum(fd);
+  //there will be multiple fbn and dbn from this inode
+  i32 cursor = bfsTell(fd);
+  i32 dataStart = cursor;
+  i32 fbn = cursor % 512;
+  i32 numbLeft = numb; //keep track of how much more needs to be read
+  i32 dataEnd = dataStart + numb;
+  for(int i = 0; i < numb; i = i + 512){
   
-  //i32 bioRead (i32 dbn, void* buf);
-  //todo: fd to dbn
-  bioRead(fd, buf);
+    fsSeek(fd, cursor, SEEK_CUR); //set to appropriate start
+      cursor = bfsTell(fd);
+      printf("cusor %d\n", cursor);
 
-  FATAL(ENYI);                                  // Not Yet Implemented!
-  return 0;
+    fbn = cursor % 512; 
+    //i32 bfsFbnToDbn(i32 inum, i32 fbn)
+    //Inode number is 'inum'
+    i32 dbn = bfsFbnToDbn(inum, fbn); 
+    //fbn is file Block number
+
+    //i32 bioRead (i32 dbn, void* buf);
+    i32 status = bioRead(dbn, tempBuf);
+      if (status != 0){
+        printf("fail\n");
+      }else{
+        printf("success\n");
+      }
+    //cursor = bfsTell(fd);
+    //printf("cusor %d\n", cursor);
+
+    i32 offset = 512;
+    fsSeek(fd, offset, SEEK_CUR);
+      cursor = bfsTell(fd);
+      printf("cusor %d\n", cursor);
+    numbLeft = numbLeft - 512;
+    if (numbLeft <= 0){break;}
+
+    for(int i = dataEnd; i < 512; i++){
+      tempBuf[i] = 0;
+    }
+    buf = tempBuf;
+  }
+  
+  for(int i = 0; i<512; i++){
+    printf("%d", tempBuf[i]);
+  }
+
+  //FATAL(ENYI);                                  // Not Yet Implemented!
+  return numb;
 }
 
 
