@@ -19,5 +19,7 @@ i32 fsSeek  (i32 fd, i32 offset, i32   whence);
 i32 fsSize  (i32 fd);
 i32 fsTell  (i32 fd);
 i32 fsWrite (i32 fd, i32 numb,   void* buf);
+void paste(i8* buf, i8* tempBuf, int start, int end);
+void viewBuf(i8* buf);
 
 #endif

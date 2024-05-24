@@ -110,11 +110,8 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
 
     //i32 bioRead (i32 dbn, void* buf);
     i32 status = bioRead(dbn, tempBuf);
-      if (status != 0){
-        printf("fail\n");
-      }else{
-        printf("success\n");
-      }
+    printf("tempBUf\n");
+    viewBuf(tempBuf); 
     //cursor = bfsTell(fd);
     //printf("cusor %d\n", cursor);
 
@@ -123,22 +120,29 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
     fsSeek(fd, offset, SEEK_CUR);
       cursor = bfsTell(fd);
       printf("cusor %d\n", cursor);
+    paste(buf, tempBuf, dataStart, offset);
+    dataStart = dataStart + offset;
     numbLeft = numbLeft - 512;
     if (numbLeft <= 0){break;}
-
-    for(int i = dataEnd; i < 512; i++){
-      tempBuf[i] = 0;
-    }
-    buf = tempBuf;
+    
   }
-  
-  for(int i = 0; i<512; i++){
-    printf("%d", tempBuf[i]);
+  viewBuf(buf);                                  // Not Yet Implemented!
+  return numb;
+}
+
+void paste(i8* buf, i8* tempBuf, int start, int end) {
+  for(int i = start; i < end; i++){
+    buf[i] = tempBuf[i];
+  }
+}
+
+void viewBuf(i8* buf){
+  printf("buf: \n\t");
+  //size_t numElements = sizeof(buf) / sizeof(buf[0]);
+  for(int i = 0; i < 2000; i++){
+    printf("%d,",buf[i]);
   }
   printf("\n");
-
-  //FATAL(ENYI);                                  // Not Yet Implemented!
-  return numb;
 }
 
 
