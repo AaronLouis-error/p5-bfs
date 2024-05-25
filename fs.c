@@ -85,61 +85,46 @@ i32 fsOpen(str fname) {
 i32 fsRead(i32 fd, i32 numb, void* buf) {
   //todo: make sure we don't hit end of File
   i8 tempBuf[512];//need temp buf so that only approved data is added to real buf
-    printf("Numb: %d\n", numb);
-  //i32 bfsFdToInum(i32 fd)
-  //Inode number is 'inum'
-  // fd is file descriptor
+  //printf("Numb: %d\n", numb);
   i32 inum = bfsFdToInum(fd);
-  //there will be multiple fbn and dbn from this inode
   i32 cursor = bfsTell(fd);
-  i32 dataStart = cursor;  printf("cusor %d\n", cursor);
-  i32 fbn = cursor % 512; printf("fbn: %d\n", fbn);
+  i32 dataStart = 0;  //printf("start %d\n", cursor);
+  i32 fbn = cursor / 512; //printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be read
   i32 dataEnd = dataStart + numb;
-  for(int i = 0; i < numb; i = i + 512){
-  
-    //fsSeek(fd, cursor, SEEK_CUR); //set to appropriate start
-      //cursor = bfsTell(fd);
-      //printf("cusor %d\n", cursor);
-
-    fbn = cursor % 512; printf("fbn: %d\n", fbn);
-    //i32 bfsFbnToDbn(i32 inum, i32 fbn)
-    //Inode number is 'inum'
-    i32 dbn = bfsFbnToDbn(inum, fbn); printf("dbn: %d\n", dbn);
-    //fbn is file Block number
-
-    //i32 bioRead (i32 dbn, void* buf);
-    i32 status = bioRead(dbn, tempBuf);
-    printf("tempBUf\n");
-    viewBuf(tempBuf); 
-    //cursor = bfsTell(fd);
-    //printf("cusor %d\n", cursor);
-
+  //todo: loop
+  while (numbLeft > 0){
+    fbn = cursor / 512; //printf("fbn: %d\n", fbn);
+    //i32 dbn = bfsFbnToDbn(inum, fbn); printf("dbn: %d\n", dbn);
+    i32 status = bfsRead(inum,fbn,tempBuf); //bioRead(dbn, buf); 
+   
     i32 offset = (numb <= 512) ? numb : 512;
-
+    paste(buf, tempBuf, dataStart, dataStart + offset);
     fsSeek(fd, offset, SEEK_CUR);
-      cursor = bfsTell(fd);
-      printf("cusor %d\n", cursor);
-    paste(buf, tempBuf, dataStart, offset);
-    dataStart = dataStart + offset;
+    cursor = bfsTell(fd); //printf("cusor %d\n", cursor);
     numbLeft = numbLeft - 512;
     if (numbLeft <= 0){break;}
-    
   }
-  viewBuf(buf);                                  // Not Yet Implemented!
+  //viewBuf(buf);                                  // Not Yet Implemented!
   return numb;
 }
 
 void paste(i8* buf, i8* tempBuf, int start, int end) {
+  //printf("paste: \n");
+  //printf("start:%d\n",start);
+  //printf("end:%d\n",end);
   for(int i = start; i < end; i++){
     buf[i] = tempBuf[i];
+    //printf("%d", tempBuf[i]);
+    
   }
+  //printf("\n");
 }
 
 void viewBuf(i8* buf){
-  printf("buf: \n\t");
+  printf("\tbuf: \n");
   //size_t numElements = sizeof(buf) / sizeof(buf[0]);
-  for(int i = 0; i < 2000; i++){
+  for(int i = 0; i < 512; i++){
     printf("%d,",buf[i]);
   }
   printf("\n");

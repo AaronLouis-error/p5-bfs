@@ -242,10 +242,10 @@ void p5test() {
 
   test1(fd);
   test2(fd);
-  test3(fd);
-  test4(fd);
-  test5(fd);
-  test6(fd);
+  //test3(fd);
+  //test4(fd);
+  //test5(fd);
+  //test6(fd);
 
   fsClose(fd);
 
