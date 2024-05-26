@@ -21,5 +21,6 @@ i32 fsTell  (i32 fd);
 i32 fsWrite (i32 fd, i32 numb,   void* buf);
 void paste(i8* buf, i8* tempBuf, int start, int end);
 void viewBuf(i8* buf);
+void transplant(i8* recipient, i8* donor, int recipientStart, int donorStart, int recipientEnd);
 
 #endif
