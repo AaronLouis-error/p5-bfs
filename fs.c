@@ -92,15 +92,16 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   i32 fbn = cursor / 512; //printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be read
   i32 dataEnd = dataStart + numb;
+  i32 numRead = (numb <= 512) ? numb : 512;
   while (numbLeft > 0){
-    fbn = cursor / 512; //printf("fbn: %d\n", fbn);
+    numRead = (numbLeft <= 512) ? numbLeft : 512;
     bfsRead(inum,fbn,tempBuf); //bioRead(dbn, buf); 
-    i32 offset = (numb <= 512) ? numb : 512;
-    paste(buf, tempBuf, dataStart, dataStart + offset);
-    fsSeek(fd, offset, SEEK_CUR);
+    paste(buf, tempBuf, dataStart, dataStart + numbLeft);
+    fsSeek(fd, numRead, SEEK_CUR);
     cursor = bfsTell(fd); //printf("cusor %d\n", cursor);
     numbLeft = numbLeft - 512;
     if (numbLeft <= 0){break;}
+    fbn ++;
   }
   //viewBuf(buf);                                  
   return numb;
