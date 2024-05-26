@@ -83,7 +83,6 @@ i32 fsOpen(str fname) {
 // read (may be less than 'numb' if we hit EOF).  On failure, abort
 // ============================================================================
 i32 fsRead(i32 fd, i32 numb, void* buf) {
-  //todo: make sure we don't hit end of File
   i8 tempBuf[513];//need temp buf so that only approved data is added to real buf
   //printf("Numb: %d\n", numb);
   i32 inum = bfsFdToInum(fd);
@@ -109,12 +108,12 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
 }
 
 void paste(i8* buf, i8* tempBuf, int start, int end) {
-  //printf("paste: \n");
-  //printf("start:%d\n",start);
-  //printf("end:%d\n",end);
   i32 tempIndex = start % 512;
-  /*the buf will be pasted into at next available index in buf but you should copy 
-  from first vaild tempBuf index*/
+  /*the buf will be pasted into at next available index in buf, but you should
+  copy from first vaild tempBuf index*/
+  printf("start: %d\n",start);
+  printf("end: %d\n", end);
+  printf("tempIndex: %d\n", tempIndex);
   for(int i = start; i <= end; i++){
     buf[i] = tempBuf[tempIndex];
     tempIndex++;
@@ -124,7 +123,8 @@ void paste(i8* buf, i8* tempBuf, int start, int end) {
 void viewBuf(i8* buf){
   printf("\tbuf: \n");
   //size_t numElements = sizeof(buf) / sizeof(buf[0]);
-  for(int i = 0; i < 513; i++){
+  for(int i = 0; i < 512; i++){
+    //printf("%d,",buf[i]);
     printf("%d\t%d\n",buf[i],i);
   }
   printf("\n");
@@ -195,11 +195,39 @@ i32 fsSize(i32 fd) {
 // destination file.  On success, return 0.  On failure, abort
 // ============================================================================
 i32 fsWrite(i32 fd, i32 numb, void* buf) {
+  i8 leftBuf[512];
+  memset(leftBuf,0,512);
+  i8 tempBufWhole[numb];
+  printf("Numb: %d\n", numb);
+  i32 inum = bfsFdToInum(fd);
+  i32 cursor = bfsTell(fd); printf("cusor %d\n", cursor);
+  i32 writeStart = cursor % 512;  printf("start %d\n", writeStart);
+  i32 fbn = cursor / 512; printf("fbn: %d\n", fbn);
+  i32 numbLeft = numb; //keep track of how much more needs to be written
+  i32 numWritten = (numb <= 512) ? numb : 512;
+  if (writeStart != 0){
+    bfsRead(inum, fbn, leftBuf);
+    //viewBuf(buf);
+    paste(leftBuf, buf, writeStart, 512);
+    i32 dbn = bfsFbnToDbn(inum, fbn);
+    bioWrite(dbn, leftBuf);
+    //viewBuf(leftBuf);
+    
+  }
+  while (numbLeft > 0){
+    numWritten = (numbLeft <= 512) ? numbLeft : 512;
+    //bfsRead(inum,fbn,tempBuf); //bioRead(dbn, buf); 
+    //paste(buf, tempBuf, writeStart, writeStart + numRead);
+    fsSeek(fd, numWritten, SEEK_CUR);
+    cursor = bfsTell(fd); //printf("cusor %d\n", cursor);
+    numbLeft = numbLeft - 512;
+    if (numbLeft <= 0){break;}
+    fbn ++;
+    //writeStart = writeStart + numRead;
+  }
+  //viewBuf(buf);                                  
+  //return numb;
 
-  // ++++++++++++++++++++++++
-  // Insert your code here
-  // ++++++++++++++++++++++++
-
-  FATAL(ENYI);                                  // Not Yet Implemented!
+  //FATAL(ENYI);                                  // Not Yet Implemented!
   return 0;
 }
