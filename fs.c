@@ -218,6 +218,7 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
   i32 writeStart = cursor % 512; //printf("\tstart %d\n", writeStart);
   i32 fbn = cursor / 512; //printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be written
+  i32 numWritten = 512;
   //i32 size = bfsGetSize(inum); printf("\tsize: %d\n",size);
   //i32 endOfWrite = cursor + numb; printf("\tendOfWrite: %d\n", endOfWrite);
   //i32 blocksNeeded = (endOfWrite < size) ? (endOfWrite - size) : 0; 
@@ -228,7 +229,7 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
   //size = bfsGetSize(inum); printf("\tsize: %d\n",size);
   
   if (writeStart != 0){
-    i32 numWritten = (numb + writeStart <= 512) ? numb : 512 - writeStart; //printf("\tnumWritten: %d\n", numWritten);
+    numWritten = (numb + writeStart <= 512) ? numb : 512 - writeStart; //printf("\tnumWritten: %d\n", numWritten);
     //printf("\toffset on start\n");
 
     i32 dbn = bfsFbnToDbn(inum, fbn); //printf("dbn: %d\n", dbn);
@@ -253,17 +254,34 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
     
   }
   while (numbLeft >= 512){
-    //printf("middle\n");
-    if (numbLeft <= 0){break;}
+    //printf("\tmiddle\n");
+    if (numbLeft <= 0){break;} //printf("\tnumbLeft: %d\n",numbLeft);
     
-    i32 dbn = bfsFbnToDbn(inum, fbn);
+   
+    
+    
+    i32 size = bfsGetSize(inum); //printf("\tsize: %d\n",size);
     cursor = bfsTell(fd); //printf("\tcusor(2): %d\n", cursor);
-    transplant(tempBuf, buf, 0, cursor, 512); //gather block from larger buffer
+    i32 roomLeft = size - cursor; //printf("\troomLeft: %d\n", roomLeft);
+    if (roomLeft < numbLeft){
+      
+      bfsExtend(inum, fbn + 1);
+      bfsSetSize(inum, size + 512);
+      bfsAllocBlock(inum, fbn + 1);
+      size = bfsGetSize(inum); //printf("\tsize: %d\n",size);
+    }
+
+    i32 dbn = bfsFbnToDbn(inum, fbn);
+    //printf("test1\n");
+    transplant(tempBuf, buf, 0, numWritten, 512); //gather block from larger buffer
+    //printf("test2\n");
     bioWrite(dbn, tempBuf);
     
     fbn ++;
     fsSeek(fd, 512, SEEK_CUR);
     numbLeft = numbLeft - 512;
+    numWritten += 512;
+    //printf("\tend of middle\n");
   }
   if (numbLeft > 0){
     //printf("\tend segment\n");
