@@ -83,6 +83,7 @@ i32 fsOpen(str fname) {
 // read (may be less than 'numb' if we hit EOF).  On failure, abort
 // ============================================================================
 i32 fsRead(i32 fd, i32 numb, void* buf) {
+  //todo: don't read past end of file
   i8 tempBuf[513];//need temp buf so that only approved data is added to real buf
   //printf("Numb: %d\n", numb);
   i32 inum = bfsFdToInum(fd);
@@ -90,6 +91,13 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
   i32 dataStart = cursor % 512;  //printf("start %d\n", dataStart);
   i32 fbn = cursor / 512; //printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be read
+  
+  //don't read past end of file
+  i32 size = bfsGetSize(inum); //printf("\tsize: %d\n",size);
+  cursor = bfsTell(fd); //printf("\tcusor(2): %d\n", cursor);
+  i32 roomLeft = size - cursor; //printf("\troomLeft: %d\n", roomLeft);
+  numbLeft = (roomLeft < numb) ? roomLeft : numb; //printf("\tnumbLeft: %d\n", numbLeft);
+  i32 numbRead = numbLeft;
   i32 numRead = (numb <= 512) ? numb : 512;
   i32 writeStart = 0;
   while (numbLeft > 0){
@@ -104,7 +112,7 @@ i32 fsRead(i32 fd, i32 numb, void* buf) {
     writeStart = writeStart + numRead;
   }
   //viewBuf(buf);                                  
-  return numb;
+  return numbRead;
 }
 
 void paste(i8* buf, i8* tempBuf, int start, int end) {
@@ -263,10 +271,11 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
     i32 size = bfsGetSize(inum); //printf("\tsize: %d\n",size);
     cursor = bfsTell(fd); //printf("\tcusor(2): %d\n", cursor);
     i32 roomLeft = size - cursor; //printf("\troomLeft: %d\n", roomLeft);
+    i32 roomNeeded = numbLeft - roomLeft;
     if (roomLeft < numbLeft){
       
       bfsExtend(inum, fbn + 1);
-      bfsSetSize(inum, size + 512);
+      bfsSetSize(inum, size + roomNeeded);
       bfsAllocBlock(inum, fbn + 1);
       size = bfsGetSize(inum); //printf("\tsize: %d\n",size);
     }
@@ -284,7 +293,7 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
     //printf("\tend of middle\n");
   }
   if (numbLeft > 0){
-    //printf("\tend segment\n");
+    printf("\tend segment\n");
     i32 dbn = bfsFbnToDbn(inum, fbn);
     bfsRead(inum, fbn, tempBuf);
    // viewBuf(tempBuf);

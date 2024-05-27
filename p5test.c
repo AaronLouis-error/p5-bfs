@@ -224,6 +224,7 @@ void test6(i32 fd) {
   checkCursor(6, 49 * 512, curs);
 
   i32 ret = fsRead(fd, 2 * BYTESPERBLOCK, buf);
+  //printf("ret: %d\n", ret);
   assert(ret == 700);
 
   curs = fsTell(fd);
