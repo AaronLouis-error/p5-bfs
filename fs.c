@@ -129,25 +129,28 @@ void paste(i8* buf, i8* tempBuf, int start, int end) {
 }
 
 void transplant(i8* recipient, i8* donor, int recipientStart, int donorStart, int recipientEnd) {
+  //printf("\tre: %d\n", recipientEnd);
   i32 donorIndex = donorStart;
   i32 recipientIndex = recipientStart;
   int counter = 0;
   while (counter < recipientEnd){
     recipient[recipientIndex] = donor[donorIndex];
+    //printf("%d->%d(%d)", donor[donorIndex], recipient[recipientIndex], recipientIndex);
     donorIndex++;
     recipientIndex++;
     counter++;
   }
+  //printf("\n");
 }
 
 void viewBuf(i8* buf){
-  printf("\tbuf: \n");
+  //printf("\tbuf: \n");
   //size_t numElements = sizeof(buf) / sizeof(buf[0]);
-  for(int i = 420; i < 520; i++){
+  for(int i = 0; i < 700; i++){
     //printf("%d,",buf[i]);
-    printf("%d\t%d\n",buf[i],i);
+    //printf("%d\t%d\n",buf[i],i);
   }
-  printf("\n");
+  //printf("\n");
 }
 
 
@@ -215,28 +218,25 @@ i32 fsSize(i32 fd) {
 // destination file.  On success, return 0.  On failure, abort
 // ============================================================================
 i32 fsWrite(i32 fd, i32 numb, void* buf) {
-  
-  //i32 newSize = fsSize(fd); printf("\tnewSize: %d\n", newSize);
   i8 tempBuf[512];
   memset(tempBuf,0,512);
+
+  // printf("\tbuf og:\n");
+  // viewBuf(buf);
   
   //printf("\tNumb: %d\n", numb);
   i32 inum = bfsFdToInum(fd);
-  i32 cursor = bfsTell(fd); //printf("cusor %d\n", cursor);
-  i32 writeStart = cursor % 512; //printf("\tstart %d\n", writeStart);
+  i32 cursor = bfsTell(fd); //printf("\tcusor %d\n", cursor);
+  i32 writeStart = cursor % 512;// printf("\tstart %d\n", writeStart);
   i32 fbn = cursor / 512; //printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be written
-  i32 numWritten = 512;
-  //i32 size = bfsGetSize(inum); printf("\tsize: %d\n",size);
-  //i32 endOfWrite = cursor + numb; printf("\tendOfWrite: %d\n", endOfWrite);
-  //i32 blocksNeeded = (endOfWrite < size) ? (endOfWrite - size) : 0; 
-    //printf("\tblocks needed: %d\n", blocksNeeded);
-  //bfsExtend(inum, fbn + 1);
-  //newSize = fsSize(fd); printf("\tnewSize: %d\n", newSize);
-  //bfsSetSize(inum, size + 512);
-  //size = bfsGetSize(inum); printf("\tsize: %d\n",size);
-  
+  i32 numWritten = 0;
+
+  // printf("\tbuf 1:\n");
+  // viewBuf(buf);
+  //int count = 0;
   if (writeStart != 0){
+    //count++;
     numWritten = (numb + writeStart <= 512) ? numb : 512 - writeStart; //printf("\tnumWritten: %d\n", numWritten);
     //printf("\toffset on start\n");
 
@@ -246,13 +246,12 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
     //viewBuf(tempBuf);
     i32 blockFront = fbn * 512; //printf("blockFront: %d\n", blockFront);
     transplant(tempBuf, buf, writeStart, 0, numWritten);
+
+
     //printf("\tfbn(2): %d\n", fbn);
     fsSeek(fd, blockFront, SEEK_SET);
     i32 cursor = bfsTell(fd); //printf("cusor %d\n", cursor);
     bioWrite(dbn, tempBuf);
-    
-    //("\tnumWritten: %d\n", numWritten);
-    //numWritten = (numb <= 512) ? numb : 512;
     numbLeft = numbLeft - numWritten; //printf("\tnumbLeft: %d\n", numbLeft);
 
     fsSeek(fd, blockFront + numWritten + writeStart, SEEK_SET);
@@ -262,18 +261,17 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
     
   }
   while (numbLeft >= 512){
+    // printf("\tbuf 2:\n");
+    // viewBuf(buf);
+
+    int count = 1;
     //printf("\tmiddle\n");
     if (numbLeft <= 0){break;} //printf("\tnumbLeft: %d\n",numbLeft);
-    
-   
-    
-    
     i32 size = bfsGetSize(inum); //printf("\tsize: %d\n",size);
     cursor = bfsTell(fd); //printf("\tcusor(2): %d\n", cursor);
     i32 roomLeft = size - cursor; //printf("\troomLeft: %d\n", roomLeft);
     i32 roomNeeded = numbLeft - roomLeft;
     if (roomLeft < numbLeft){
-      
       bfsExtend(inum, fbn + 1);
       bfsSetSize(inum, size + roomNeeded);
       bfsAllocBlock(inum, fbn + 1);
@@ -282,18 +280,35 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
 
     i32 dbn = bfsFbnToDbn(inum, fbn);
     //printf("test1\n");
+    //printf("\tnumWritten: %d\n", numWritten);
     transplant(tempBuf, buf, 0, numWritten, 512); //gather block from larger buffer
+
+    // printf("\tbuf 3:\n");
+    // viewBuf(buf);
+
+    //printf("\tbuf temp:\n");
+    viewBuf(tempBuf);
     //printf("test2\n");
-    bioWrite(dbn, tempBuf);
+    bioWrite(dbn, tempBuf); 
+    
+    // printf("\tbuf 4:\n");
+    // viewBuf(buf);
+    
+
+    if (count == 1){ 
+      //fsRead(fd, 512, tempBuf);
+      viewBuf(tempBuf);
+      count++;
+    }
     
     fbn ++;
     fsSeek(fd, 512, SEEK_CUR);
-    numbLeft = numbLeft - 512;
+    numbLeft = numbLeft - 512; //printf("\tnumbLeft: %d\n", numbLeft);
     numWritten += 512;
     //printf("\tend of middle\n");
   }
   if (numbLeft > 0){
-    printf("\tend segment\n");
+    //printf("\tend segment\n");
     i32 dbn = bfsFbnToDbn(inum, fbn);
     bfsRead(inum, fbn, tempBuf);
    // viewBuf(tempBuf);
