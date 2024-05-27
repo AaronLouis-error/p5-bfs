@@ -207,6 +207,8 @@ i32 fsSize(i32 fd) {
 // destination file.  On success, return 0.  On failure, abort
 // ============================================================================
 i32 fsWrite(i32 fd, i32 numb, void* buf) {
+  
+  //i32 newSize = fsSize(fd); printf("\tnewSize: %d\n", newSize);
   i8 tempBuf[512];
   memset(tempBuf,0,512);
   
@@ -216,6 +218,14 @@ i32 fsWrite(i32 fd, i32 numb, void* buf) {
   i32 writeStart = cursor % 512; //printf("\tstart %d\n", writeStart);
   i32 fbn = cursor / 512; //printf("fbn: %d\n", fbn);
   i32 numbLeft = numb; //keep track of how much more needs to be written
+  //i32 size = bfsGetSize(inum); printf("\tsize: %d\n",size);
+  //i32 endOfWrite = cursor + numb; printf("\tendOfWrite: %d\n", endOfWrite);
+  //i32 blocksNeeded = (endOfWrite < size) ? (endOfWrite - size) : 0; 
+    //printf("\tblocks needed: %d\n", blocksNeeded);
+  //bfsExtend(inum, fbn + 1);
+  //newSize = fsSize(fd); printf("\tnewSize: %d\n", newSize);
+  //bfsSetSize(inum, size + 512);
+  //size = bfsGetSize(inum); printf("\tsize: %d\n",size);
   
   if (writeStart != 0){
     i32 numWritten = (numb + writeStart <= 512) ? numb : 512 - writeStart; //printf("\tnumWritten: %d\n", numWritten);

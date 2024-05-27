@@ -245,7 +245,7 @@ void p5test() {
   test3(fd);
   test4(fd);
   test5(fd);
-  //test6(fd);
+  test6(fd);
 
   fsClose(fd);
 
